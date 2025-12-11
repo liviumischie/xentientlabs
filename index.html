@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xentient Labs - Bridging OT and IT</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Use Inter font family -->
+    <style>
+        /* UPDATED: Loading Red Hat Mono instead of Fira Code */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Red+Hat+Mono:wght@300..700&display=swap');
+        
+        /* Set base font to Inter and a monospace font for code/terminal aesthetics */
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0A0E1A; /* Dark background */
+        }
+        /* UPDATED: Defined font-terminal to use Red Hat Mono */
+        .font-terminal {
+            font-family: 'Red Hat Mono', monospace;
+        }
+
+        /* Custom utility classes for the unique styles that cannot be fully done with raw Tailwind */
+        
+        /* 1. Header CTA Button Border Gradient */
+        .gradient-border-button {
+            position: relative;
+            z-index: 10;
+        }
+
+        .gradient-border-button::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 6px;
+            padding: 2px;
+            /* Simplified gradient: Indigo to Pink */
+            background: linear-gradient(135deg, #6366f1 0%, #ec4899 100%); 
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .gradient-border-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(139, 92, 246, 0.4);
+            background-color: rgba(139, 92, 246, 0.1);
+        }
+
+        /* 2. Primary Button Shine Effect - Kept for consistency, but hover shadow/gradient adjusted inline in HTML */
+        .btn-primary-shine {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary-shine::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s ease;
+            opacity: 0;
+        }
+
+        .btn-primary-shine:hover::before {
+            left: 100%;
+            opacity: 1;
+        }
+
+        /* 3. Gradient Lines for Service Cards */
+        .service-card-line-1::before { background: linear-gradient(180deg, #3b82f6 0%, #06b6d4 100%); }
+        .service-card-line-2::before { background: linear-gradient(180deg, #8b5cf6 0%, #ec4899 100%); }
+        .service-card-line-3::before { background: linear-gradient(180deg, #10b981 0%, #84cc16 100%); }
+        .service-card-line-4::before { background: linear-gradient(180deg, #f59e0b 0%, #ef4444 100%); }
+        .service-card-line-5::before { background: linear-gradient(180deg, #06b6d4 0%, #8b5cf6 100%); }
+        .service-card-line-6::before { background: linear-gradient(180deg, #ec4899 0%, #f59e0b 100%); }
+        .service-card-line-7::before { background: linear-gradient(180deg, #10b981 0%, #06b6d4 100%); }
+
+        /* General line style */
+        .service-card-text {
+            position: relative;
+            padding-left: 1.25rem;
+        }
+        .service-card-text::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            border-radius: 9999px; /* rounded-full */
+        }
+        
+        /* Custom CSS to handle mobile navigation overlay */
+        #nav.mobile-active {
+            display: flex; /* Show the menu */
+            flex-direction: column;
+            /* Position it below the header bar, covering the rest of the screen width */
+            position: absolute;
+            top: 80px; /* Aligns right below the 80px high header bar */
+            left: 0;
+            right: 0;
+            /* Ensure it has a solid background when open */
+            background: #0a0e1a;
+            border-top: 1px solid #334155; 
+            padding-bottom: 1.5rem; /* Add padding at the bottom */
+            height: fit-content;
+        }
+        /* Hide the navigation links container on mobile by default */
+        #nav {
+            display: none;
+        }
+        /* Always show on large screens */
+        @media (min-width: 1024px) {
+            #nav {
+                display: flex !important;
+                position: relative;
+                top: auto;
+                background: transparent;
+                border-top: none;
+                padding: 0;
+            }
+        }
+
+        /* 4. NEW: Text Glow Effect for Menu Items */
+        /* Apply this class to the <a> tags */
+        .nav-link-glow:hover {
+            /* Create a subtle pink/violet glow effect */
+            text-shadow: 0 0 5px rgba(236, 72, 153, 0.8), /* Pink glow */
+                         0 0 10px rgba(99, 102, 241, 0.4); /* Violet glow */
+            /* Ensure the text is white when glowing */
+            color: #fff !important; 
+        }
+        
+        /* NEW: Custom class for the specific primary CTA gradient requested by the user */
+        .cta-primary-gradient {
+            background: linear-gradient(90deg, #4f23ee 0%, #fc58a9 70%, #ffae5b 100%);
+        }
+        /* NEW: Hover state for the new CTA gradient */
+        .cta-primary-gradient:hover {
+            /* Make the button slightly darker and shift the shadow */
+            filter: brightness(1.1);
+            box-shadow: 0 10px 25px rgba(252, 88, 169, 0.4); /* Stronger shadow near pink/orange end */
+        }
+    </style>
+</head>
+<body class="bg-[#0a0e1a] text-zinc-50 leading-relaxed pt-[80px]">
+    <!-- Header (Fixed at the top, now structurally correct for mobile/desktop) -->
+    <header id="header" class="font-terminal fixed top-0 left-0 right-0 bg-[#0a0e1a]/95 backdrop-blur-md border-b border-slate-700/50 z-50 transition-all duration-300 shadow-xl h-[80px]">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full">
+            <div class="flex items-center justify-between h-full">
+                <!-- Logo -->
+                <a href="#" class="text-xl font-bold text-blue-500 flex items-center gap-2">
+                    <!-- Company Logo Image -->
+                    <img 
+                        src="https://drive.google.com/thumbnail?id=17oAsPHW7z0if13aYDMJ27S4-vduMfHv6" 
+                        alt="Xentient Labs Logo" 
+                        class="h-7 w-auto rounded-md"
+                    />
+                    <!-- Company Name Text -->
+                    <span class="text-white text-lg lg:text-xl font-semibold font-terminal tracking-wider">
+                        xentient labs
+                    </span>
+                </a>
+                
+                <!-- Mobile Menu Button (Hamburger) -->
+                <button id="menu-toggle" class="lg:hidden text-slate-400 text-2xl p-2 rounded-lg hover:text-white transition" onclick="toggleMenu()">
+                    ☰
+                </button>
+                
+                <!-- Navigation (Desktop & Mobile) -->
+                <!-- On large screens (lg:), this is flex-row. On mobile, it's hidden by default and activated via JS (mobile-active) -->
+                <nav id="nav" class="lg:flex lg:items-center lg:gap-8 flex-col lg:flex-row p-6 lg:p-0 uppercase">
+                    <ul class="flex flex-col lg:flex-row gap-6 lg:gap-8 list-none m-0 p-0 w-full lg:w-auto mb-6 lg:mb-0">
+                        <li><a href="#services" class="text-slate-400 hover:text-white text-base font-medium transition duration-300 relative group block py-2 lg:py-0 nav-link-glow">
+                            Services
+                            <!-- REMOVED: <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-indigo-500 to-pink-500 group-hover:w-full transition-all duration-300"></span> -->
+                        </a></li>
+                        <li><a href="#expertise" class="text-slate-400 hover:text-white text-base font-medium transition duration-300 relative group block py-2 lg:py-0 nav-link-glow">
+                            Expertise
+                            <!-- REMOVED: <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-indigo-500 to-pink-500 group-hover:w-full transition-all duration-300"></span> -->
+                        </a></li>
+                        <li><a href="#use-cases" class="text-slate-400 hover:text-white text-base font-medium transition duration-300 relative group block py-2 lg:py-0 nav-link-glow">
+                            Use Cases
+                            <!-- REMOVED: <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-indigo-500 to-pink-500 group-hover:w-full transition-all duration-300"></span> -->
+                        </a></li>
+                        <li><a href="#about" class="text-slate-400 hover:text-white text-base font-medium transition duration-300 relative group block py-2 lg:py-0 nav-link-glow">
+                            About
+                            <!-- REMOVED: <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-indigo-500 to-pink-500 group-hover:w-full transition-all duration-300"></span> -->
+                        </a></li>
+                    </ul>
+                    <a href="#contact" class="border-slate-700 py-2.5 px-6 text-white text-sm font-semibold rounded-lg text-center transition duration-300 bg-transparent border-2 w-full lg:w-auto">
+                        Get Started
+                    </a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero py-16 md:py-24">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <!-- Terminal Window Card -->
+            <div class="bg-slate-800 rounded-xl overflow-hidden shadow-2xl shadow-black/50 border border-slate-700/50">
+                <!-- Terminal Header -->
+                <div class="bg-slate-800/70 p-3 flex items-center gap-2 border-b border-slate-700">
+                    <div class="terminal-dot w-3 h-3 rounded-full bg-red-500"></div>
+                    <div class="terminal-dot w-3 h-3 rounded-full bg-yellow-500"></div>
+                    <div class="terminal-dot w-3 h-3 rounded-full bg-green-500"></div>
+                    <span class="ml-4 text-slate-400 text-sm font-terminal">{xentient labs} - ~</span>
+                </div>
+                
+                <!-- Terminal Body (UPDATED: Applying font-terminal here to affect all text inside) -->
+                <div class="bg-[#111725] p-8 md:p-12 lg:p-16 font-terminal">
+                    <div class="text-lg text-emerald-400 mb-6">$ ./intro.sh</div>
+                    
+                    <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold mb-4 leading-tight">
+                        Bridge the gap between<br><span class="text-blue-700">OT and IT</span>
+                    </h1>
+                    
+                    <p class="text-xl text-slate-400 mb-8 max-w-3xl">
+                        We build software that connects machines, devices, and systems in factories and labs. From FDI and OPC UA integration to complete automation platforms, we turn complex technical challenges into reliable, working solutions.
+                    </p>
+                    
+                    <div class="text-lg text-emerald-400 mb-6">$ ./connect.sh</div>
+                    
+                    <!-- CTA Buttons -->
+                    <div class="flex flex-col sm:flex-row gap-4 mt-8">
+                        <!-- UPDATED: Applying new CTA gradient class -->
+                        <a href="#contact" class="btn-primary-shine py-3.5 px-12 text-white text-base font-semibold rounded-xl transition duration-300 shadow-lg shadow-pink-600/20
+                            cta-primary-gradient hover:shadow-xl hover:shadow-pink-600/40">
+                            START YOUR PROJECT
+                        </a>
+                        <a href="#services" class="py-3.5 px-12 text-white text-base font-semibold rounded-xl transition duration-300 
+                            bg-transparent border-2 border-slate-700 hover:border-blue-500 hover:bg-blue-500/10">
+                            OUR SERVICES
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section class="py-24 bg-[#0f172a]" id="services">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <span class="font-terminal text-blue-500 text-sm block mb-2">// our expertise</span>
+                <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold mb-4">What We Build</h2>
+                <p class="text-xl text-slate-400 max-w-3xl mx-auto">End-to-end software solutions for industrial automation and laboratory systems</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Service Card 1 -->
+                <div class="service-card-line-1 bg-slate-800 p-8 rounded-xl border border-slate-700 transition-all duration-300 hover:translate-y-[-5px] hover:border-blue-500 hover:shadow-xl hover:shadow-blue-500/10">
+                    <h3 class="text-xl font-bold mb-3 text-white">Automation Architecture</h3>
+                    <p class="service-card-text text-slate-400">Design and development of scalable automation software systems. We build the foundation that powers your digital transformation.</p>
+                </div>
+                
+                <!-- Service Card 2 -->
+                <div class="service-card-line-2 bg-slate-800 p-8 rounded-xl border border-slate-700 transition-all duration-300 hover:translate-y-[-5px] hover:border-violet-500 hover:shadow-xl hover:shadow-violet-500/10">
+                    <h3 class="text-xl font-bold mb-3 text-white">OPC UA & FDI Integration</h3>
+                    <p class="service-card-text text-slate-400">Expert consulting and implementation of OPC UA and Field Device Integration standards for seamless device communication.</p>
+                </div>
+                
+                <!-- Service Card 3 -->
+                <div class="service-card-line-3 bg-slate-800 p-8 rounded-xl border border-slate-700 transition-all duration-300 hover:translate-y-[-5px] hover:border-emerald-500 hover:shadow-xl hover:shadow-emerald-500/10">
+                    <h3 class="text-xl font-bold mb-3 text-white">Device Communication Stacks</h3>
+                    <p class="service-card-text text-slate-400">Custom communication protocols and interoperability frameworks that make your equipment speak the same language.</p>
+                </div>
+                
+                <!-- Service Card 4 -->
+                <div class="service-card-line-4 bg-slate-800 p-8 rounded-xl border border-slate-700 transition-all duration-300 hover:translate-y-[-5px] hover:border-amber-500 hover:shadow-xl hover:shadow-amber-500/10">
+                    <h3 class="text-xl font-bold mb-3 text-white">Custom Software Development</h3>
+                    <p class="service-card-text text-slate-400">Full-stack development of desktop, web, and mobile applications using .NET, Angular, React, and Next.js to bring your vision to life.</p>
+                </div>
+                
+                <!-- Service Card 5 -->
+                <div class="service-card-line-5 bg-slate-800 p-8 rounded-xl border border-slate-700 transition-all duration-300 hover:translate-y-[-5px] hover:border-cyan-500 hover:shadow-xl hover:shadow-cyan-500/10">
+                    <h3 class="text-xl font-bold mb-3 text-white">Data Management & Visualization</h3>
+                    <p class="service-card-text text-slate-400">Transform raw device data into actionable insights with powerful visualization and diagnostic tools.</p>
+                </div>
+                
+                <!-- Service Card 6 -->
+                <div class="service-card-line-6 bg-slate-800 p-8 rounded-xl border border-slate-700 transition-all duration-300 hover:translate-y-[-5px] hover:border-pink-500 hover:shadow-xl hover:shadow-pink-500/10">
+                    <h3 class="text-xl font-bold mb-3 text-white">System Integration</h3>
+                    <p class="service-card-text text-slate-400">Connect legacy systems with modern platforms. We bridge the gap between old and new technology.</p>
+                </div>
+                
+                <!-- Service Card 7 (Spans one column on large screens) -->
+                <div class="service-card-line-7 bg-slate-800 p-8 rounded-xl border border-slate-700 transition-all duration-300 hover:translate-y-[-5px] hover:border-teal-500 hover:shadow-xl hover:shadow-teal-500/10 lg:col-span-1 md:col-span-2 mx-auto w-full md:max-w-md lg:max-w-none">
+                    <h3 class="text-xl font-bold mb-3 text-white">Long-term Support</h3>
+                    <p class="service-card-text text-slate-400">Ongoing maintenance, updates, and technical support to keep your systems running smoothly.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Expertise Section -->
+    <section class="py-24 bg-[#0a0e1a]" id="expertise">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                <!-- Text Content -->
+                <div class="expertise-text">
+                    <span class="font-terminal text-blue-500 text-sm block mb-2">// technology stack</span>
+                    <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold mb-4">Built on Industry Standards</h2>
+                    <p class="text-xl text-slate-400 mb-8">
+                        We work with cutting-edge technologies and proven standards to deliver solutions that are both innovative and reliable. Our expertise spans across protocols, frameworks, and platforms used by industry leaders worldwide.
+                    </p>
+                    <!-- UPDATED: Applying new CTA gradient class -->
+                    <a href="#contact" class="py-3.5 px-8 text-white text-base font-semibold rounded-xl transition duration-300 shadow-lg shadow-pink-600/20 inline-block
+                        cta-primary-gradient hover:shadow-xl hover:shadow-pink-600/40">
+                        Discuss Your Project
+                    </a>
+                </div>
+                
+                <!-- Tech Stack Card -->
+                <div class="bg-slate-800 p-8 rounded-xl border border-slate-700 shadow-xl">
+                    <div class="space-y-6">
+                        <!-- Protocols -->
+                        <div>
+                            <h4 class="font-terminal text-blue-500 text-sm mb-3">// protocols & standards</h4>
+                            <div class="flex flex-wrap gap-2">
+                                <span class="bg-slate-900 px-3 py-1 rounded-md text-sm text-slate-100 border border-slate-700 shadow-inner shadow-slate-900/50">OPC UA</span>
+                                <span class="bg-slate-900 px-3 py-1 rounded-md text-sm text-slate-100 border border-slate-700 shadow-inner shadow-slate-900/50">FDI</span>
+                                <span class="bg-slate-900 px-3 py-1 rounded-md text-sm text-slate-100 border border-slate-700 shadow-inner shadow-slate-900/50">MQTT</span>
+                                <span class="bg-slate-900 px-3 py-1 rounded-md text-sm text-slate-100 border border-slate-700 shadow-inner shadow-slate-900/50">REST APIs</span>
+                                <span class="bg-slate-900 px-3 py-1 rounded-md text-sm text-slate-100 border border-slate-700 shadow-inner shadow-slate-900/50">Modbus</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Platforms -->
+                        <div>
+                            <h4 class="font-terminal text-blue-500 text-sm mb-3">// platforms & frameworks</h4>
+                            <div class="flex flex-wrap gap-2">
+                                <span class="bg-slate-900 px-3 py-1 rounded-md text-sm text-slate-100 border border-slate-700 shadow-inner shadow-slate-900/50">.NET</span>
+                                <span class="bg-slate-900 px-3 py-1 rounded-md text-sm text-slate-100 border border-slate-700 shadow-inner shadow-slate-900/50">C/C++</span>
+                                <span class="bg-slate-900 px-3 py-1 rounded-md text-sm text-slate-100 border border-slate-700 shadow-inner shadow-slate-900/50">Python</span>
+                                <span class="bg-slate-900 px-3 py-1 rounded-md text-sm text-slate-100 border border-slate-700 shadow-inner shadow-slate-900/50">React</span>
+                                <span class="bg-slate-900 px-3 py-1 rounded-md text-sm text-slate-100 border border-slate-700 shadow-inner shadow-slate-900/50">Node.js</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Specialized Domains -->
+                        <div>
+                            <h4 class="font-terminal text-blue-500 text-sm mb-3">// specialized domains</h4>
+                            <div class="flex flex-wrap gap-2">
+                                <span class="bg-slate-900 px-3 py-1 rounded-md text-sm text-slate-100 border border-slate-700 shadow-inner shadow-slate-900/50">Industrial Automation</span>
+                                <span class="bg-slate-900 px-3 py-1 rounded-md text-sm text-slate-100 border border-slate-700 shadow-inner shadow-slate-900/50">Lab Automation</span>
+                                <span class="bg-slate-900 px-3 py-1 rounded-md text-sm text-slate-100 border border-slate-700 shadow-inner shadow-slate-900/50">Field Device Integration</span>
+                                <span class="bg-slate-900 px-3 py-1 rounded-md text-sm text-slate-100 border border-slate-700 shadow-inner shadow-slate-900/50">SCADA Systems</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Use Cases Section -->
+    <section class="py-24 bg-[#0f172a]" id="use-cases">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <span class="font-terminal text-blue-500 text-sm block mb-2">// real-world applications</span>
+                <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold mb-4">Where We Make an Impact</h2>
+                <p class="text-xl text-slate-400 max-w-3xl mx-auto">From factory floors to research laboratories, our solutions power critical operations</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Use Case 1: Industrial Manufacturing -->
+                <div class="bg-gradient-to-br from-slate-800 to-slate-900 p-8 rounded-xl border border-slate-700 relative overflow-hidden group">
+                    <div class="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-blue-500 to-cyan-500 transition-all duration-300 group-hover:w-2"></div>
+                    <h3 class="text-2xl font-bold mb-4 text-white">Industrial Manufacturing</h3>
+                    <p class="text-slate-400 mb-6">Connect PLCs, sensors, and manufacturing equipment to modern IT systems for real-time monitoring and control.</p>
+                    <ul class="list-none space-y-2">
+                        <li class="text-slate-400 pl-6 relative before:content-['\2192'] before:absolute before:left-0 before:text-blue-500">Production line monitoring</li>
+                        <li class="text-slate-400 pl-6 relative before:content-['\2192'] before:absolute before:left-0 before:text-blue-500">Equipment health diagnostics</li>
+                        <li class="text-slate-400 pl-6 relative before:content-['\2192'] before:absolute before:left-0 before:text-blue-500">Quality control integration</li>
+                        <li class="text-slate-400 pl-6 relative before:content-['\2192'] before:absolute before:left-0 before:text-blue-500">Energy management systems</li>
+                    </ul>
+                </div>
+                
+                <!-- Use Case 2: Laboratory Automation -->
+                <div class="bg-gradient-to-br from-slate-800 to-slate-900 p-8 rounded-xl border border-slate-700 relative overflow-hidden group">
+                    <div class="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-violet-500 to-pink-500 transition-all duration-300 group-hover:w-2"></div>
+                    <h3 class="text-2xl font-bold mb-4 text-white">Laboratory Automation</h3>
+                    <p class="text-slate-400 mb-6">Integrate complex laboratory instruments and create workflow automation for research and diagnostic labs.</p>
+                    <ul class="list-none space-y-2">
+                        <li class="text-slate-400 pl-6 relative before:content-['\2192'] before:absolute before:left-0 before:text-violet-500">Sample tracking systems</li>
+                        <li class="text-slate-400 pl-6 relative before:content-['\2192'] before:absolute before:left-0 before:text-violet-500">Instrument connectivity</li>
+                        <li class="text-slate-400 pl-6 relative before:content-['\2192'] before:absolute before:left-0 before:text-violet-500">Data acquisition platforms</li>
+                        <li class="text-slate-400 pl-6 relative before:content-['\2192'] before:absolute before:left-0 before:text-violet-500">Lab information systems (LIS)</li>
+                    </ul>
+                </div>
+                
+                <!-- Use Case 3: Process Automation -->
+                <div class="bg-gradient-to-br from-slate-800 to-slate-900 p-8 rounded-xl border border-slate-700 relative overflow-hidden group">
+                    <div class="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-emerald-500 to-lime-500 transition-all duration-300 group-hover:w-2"></div>
+                    <h3 class="text-2xl font-bold mb-4 text-white">Process Automation</h3>
+                    <p class="text-slate-400 mb-6">Build control systems for chemical, pharmaceutical, and food processing industries with full regulatory compliance.</p>
+                    <ul class="list-none space-y-2">
+                        <li class="text-slate-400 pl-6 relative before:content-['\2192'] before:absolute before:left-0 before:text-emerald-500">Batch management systems</li>
+                        <li class="text-slate-400 pl-6 relative before:content-['\2192'] before:absolute before:left-0 before:text-emerald-500">Recipe management</li>
+                        <li class="text-slate-400 pl-6 relative before:content-['\2192'] before:absolute before:left-0 before:text-emerald-500">Regulatory reporting</li>
+                        <li class="text-slate-400 pl-6 relative before:content-['\2192'] before:absolute before:left-0 before:text-emerald-500">Process optimization</li>
+                    </ul>
+                </div>
+                
+                <!-- Use Case 4: Legacy System Integration -->
+                <div class="bg-gradient-to-br from-slate-800 to-slate-900 p-8 rounded-xl border border-slate-700 relative overflow-hidden group">
+                    <div class="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-amber-500 to-red-500 transition-all duration-300 group-hover:w-2"></div>
+                    <h3 class="text-2xl font-bold mb-4 text-white">Legacy System Integration</h3>
+                    <p class="text-slate-400 mb-6">Modernize existing infrastructure by connecting legacy equipment to cloud platforms and modern analytics tools.</p>
+                    <ul class="list-none space-y-2">
+                        <li class="text-slate-400 pl-6 relative before:content-['\2192'] before:absolute before:left-0 before:text-amber-500">Protocol conversion</li>
+                        <li class="text-slate-400 pl-6 relative before:content-['\2192'] before:absolute before:left-0 before:text-amber-500">Cloud connectivity</li>
+                        <li class="text-slate-400 pl-6 relative before:content-['\2192'] before:absolute before:left-0 before:text-amber-500">Data historians</li>
+                        <li class="text-slate-400 pl-6 relative before:content-['\2192'] before:absolute before:left-0 before:text-amber-500">Predictive maintenance</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="py-24 bg-gradient-to-tr from-slate-800/50 to-[#0f172a]" id="contact">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center bg-slate-900 p-10 md:p-16 rounded-xl border border-slate-700 shadow-2xl">
+                <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold mb-4">Ready to Connect Your Systems?</h2>
+                <p class="text-xl text-slate-400 mb-8 max-w-2xl mx-auto">Let's discuss how we can help you bridge the gap between your operational technology and IT infrastructure.</p>
+                
+                <div class="font-terminal text-xl text-green-400 mb-8">$ ./start-conversation.sh</div>
+                
+                <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <!-- UPDATED: Applying new CTA gradient class -->
+                    <a href="mailto:contact@xentientlabs.com" class="py-3.5 px-8 text-white text-base font-semibold rounded-xl transition duration-300 shadow-lg shadow-pink-600/20
+                        cta-primary-gradient hover:shadow-xl hover:shadow-pink-600/40">
+                        Get in Touch
+                    </a>
+                    <a href="#services" class="py-3.5 px-8 text-white text-base font-semibold rounded-xl transition duration-300 
+                        bg-transparent border-2 border-slate-700 hover:border-blue-500 hover:bg-blue-500/10">
+                        Learn More
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-[#0a0e1a] py-12 md:py-16 border-t border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8 mb-10">
+                <!-- Brand Info (Spans 2 columns on small screens) -->
+                <div class="col-span-2 lg:col-span-2">
+                    <!-- Updated footer logo to use the same structure -->
+                    <h3 class="font-sans text-xl font-bold mb-4 text-white flex items-center gap-2">
+                        <img 
+                            src="https://drive.google.com/thumbnail?id=17oAsPHW7z0if13aYDMJ27S4-vduMfHv6" 
+                            alt="Xentient Labs Logo" 
+                            class="h-6 w-auto rounded-md"
+                        />
+                        xentient labs
+                    </h3>
+                    <p class="text-slate-500 text-sm max-w-xs">Bridging the gap between OT and IT through expert software engineering for industrial automation and laboratory systems.</p>
+                </div>
+                
+                <!-- Services Links -->
+                <div class="col-span-1">
+                    <h4 class="mb-4 text-base font-semibold text-white">Services</h4>
+                    <ul class="space-y-1 text-sm">
+                        <li><a href="#services" class="text-slate-400 hover:text-blue-500 transition duration-300 block">Automation Architecture</a></li>
+                        <li><a href="#services" class="text-slate-400 hover:text-blue-500 transition duration-300 block">OPC UA Integration</a></li>
+                        <li><a href="#services" class="text-slate-400 hover:text-blue-500 transition duration-300 block">Device Communication</a></li>
+                        <li><a href="#services" class="text-slate-400 hover:text-blue-500 transition duration-300 block">System Integration</a></li>
+                    </ul>
+                </div>
+                
+                <!-- Company Links -->
+                <div class="col-span-1">
+                    <h4 class="mb-4 text-base font-semibold text-white">Company</h4>
+                    <ul class="space-y-1 text-sm">
+                        <li><a href="#about" class="text-slate-400 hover:text-blue-500 transition duration-300 block">About Us</a></li>
+                        <li><a href="#expertise" class="text-slate-400 hover:text-blue-500 transition duration-300 block">Expertise</a></li>
+                        <li><a href="#contact" class="text-slate-400 hover:text-blue-500 transition duration-300 block">Contact</a></li>
+                        <li><a href="#careers" class="text-slate-400 hover:text-blue-500 transition duration-300 block">Careers</a></li>
+                    </ul>
+                </div>
+
+                <!-- Connect Links (Moved to bottom right on large screen) -->
+                <div class="col-span-2 md:col-span-1 lg:col-span-1">
+                    <h4 class="mb-4 text-base font-semibold text-white">Connect</h4>
+                    <ul class="space-y-1 text-sm">
+                        <li><a href="#" class="text-slate-400 hover:text-blue-500 transition duration-300 block">LinkedIn</a></li>
+                        <li><a href="#" class="text-slate-400 hover:text-blue-500 transition duration-300 block">GitHub</a></li>
+                        <li><a href="mailto:contact@xentientlabs.com" class="text-slate-400 hover:text-blue-500 transition duration-300 block">Email</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Footer Bottom -->
+            <div class="text-center pt-8 border-t border-slate-800">
+                <p class="text-sm text-slate-500">© 2024 Xentient Labs. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Smooth scrolling function, updated to use Tailwind classes for the menu
+        const headerOffset = 80; // Match header height
+        
+        // Mobile menu toggle
+        function toggleMenu() {
+            const nav = document.getElementById('nav');
+            // Toggle the custom class that handles mobile display
+            nav.classList.toggle('mobile-active');
+            
+            // Change the hamburger icon (optional, but good UX)
+            const toggleButton = document.getElementById('menu-toggle');
+            if (nav.classList.contains('mobile-active')) {
+                toggleButton.textContent = '✕'; // Close icon
+            } else {
+                toggleButton.textContent = '☰'; // Hamburger icon
+            }
+        }
+
+        // Close mobile menu when clicking a link and handle smooth scroll
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                
+                // Close menu if open (for mobile)
+                const nav = document.getElementById('nav');
+                const toggleButton = document.getElementById('menu-toggle');
+                
+                // Check if the menu is visible on a non-large screen
+                if (window.innerWidth < 1024 && nav.classList.contains('mobile-active')) { 
+                    nav.classList.remove('mobile-active');
+                    toggleButton.textContent = '☰';
+                }
+
+                // Smooth scrolling logic
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    const elementPosition = target.getBoundingClientRect().top;
+                    const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+                    window.scrollTo({
+                        top: offsetPosition,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
