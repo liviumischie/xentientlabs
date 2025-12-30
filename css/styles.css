@@ -129,3 +129,8 @@
             box-shadow: 0 10px 25px rgba(252, 88, 169, 0.4);
             /* Stronger shadow near pink/orange end */
         }
+
+        .team-image-container{
+            max-width: 250px;
+            margin: auto;
+        }
